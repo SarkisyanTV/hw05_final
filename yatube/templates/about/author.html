@@ -1,0 +1,17 @@
+<!-- templates/about/author.html -->
+{% extends "base.html" %}
+{% block title %}Об авторе проекта{% endblock %}
+{% load static %}
+{% block content %}
+<h1>Автор сайта</h1>
+<img src="{% static 'img/2022-12-20 13-50-40.png' %}" alt="" class="img-thumbnail">
+<p>
+  Здравствуйте, меня зовут Тигран. Я студент факультета <a href="https://practicum.yandex.ru/">Яндекс-Пактикум.</a>  
+</p>
+<p>
+  На курсе мы изучаем язык програмирования Python. 
+</p>
+<p>
+  Пожалуйста напишите мне, если у Вас возникли вопросы по данному сайту. Email: S.tigo@yandex.ru
+</p> 
+{% endblock %}

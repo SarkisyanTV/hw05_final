@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% block title %}{{ group.title }}{% endblock title %}
+<!-- класс py-5 создает отступы сверху и снизу блока -->    
+{% block content %}
+<h1>{{ group.title }}</h1>
+<p>{{ group.description }}</p>
+  <article>
+    {% for post in page_obj %}
+      <div class="row">
+        <aside class="col-12 col-md-3">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            Автор: <a href="{% url 'posts:profile' post.author %}"> {{ post.author.get_full_name }} </a>
+          </li>
+          <li class="list-group-item">
+            Дата публикации: {{ post.pub_date|date:"d E Y" }}
+          </li>
+        </ul> 
+      </aside>
+      <article class="col-12 col-md-9">
+        {% thumbnail post.image "800x460" crop="center" upscale=True as im %}
+          <img class="card-img my-2 img-thumbnail" src="{{ im.url }}">
+        {% endthumbnail %}
+        <p>{{post.text}}</p>
+      </article>
+      {% if not forloop.last %}<hr>{% endif %}
+      </div>
+    {% endfor %}
+  </article>
+{% include 'posts/includes/paginator.html'%}
+{% endblock %}
+    
