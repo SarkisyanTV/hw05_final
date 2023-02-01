@@ -1,8 +1,11 @@
 from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.core.cache import cache
 
-from posts.models import Post, Group, User
+User = get_user_model()
+
+from ..models import Post, Group, User
 
 User = get_user_model()
 
@@ -12,7 +15,7 @@ class PostsUrlTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.user = User.objects.create_user(username='auth')
+        cls.user = User.objects.create_user('auth')
         cls.group = Group.objects.create(
             title='group-title',
             slug='group-slug',
@@ -29,9 +32,10 @@ class PostsUrlTest(TestCase):
 
     def setUp(self):
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='HasNoName')
+        self.user = User.objects.create_user('HasNoName')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_url_exists_at_desired_location(self):
         """Доступ к общим страницам."""

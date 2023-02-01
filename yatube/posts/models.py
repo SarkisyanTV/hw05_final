@@ -70,11 +70,15 @@ class Comment(models.Model):
         related_name='comments'
     )
     text = models.TextField(
-        'Текст комментария'
+        'Текст комментария',
+        help_text='Введите текст комментария'
     )
     created = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self) -> str:
+        return self.text[:15]
 
 
 class Follow(models.Model):
@@ -92,3 +96,10 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_follow'
+            )
+        ]

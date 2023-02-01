@@ -7,9 +7,10 @@ from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
-from posts.forms import PostForm
-from posts.models import Post, Group, User
+from ..forms import PostForm
+from ..models import Post, Group, User
 
 User = get_user_model()
 
@@ -51,6 +52,7 @@ class PostFormTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_create_post_create_new_post(self):
         """Форма создаёт новый пост"""

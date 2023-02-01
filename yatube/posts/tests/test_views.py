@@ -9,7 +9,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from ..models import Post, Group, Comment, Follow, User
+from ..models import User
+from ..utils import *
 
 User = get_user_model()
 
@@ -33,19 +34,10 @@ class PostsPagesTests(TestCase):
             content=image,
             content_type='image/gif'
         )
-        cls.user = User.objects.create_user(username='Sonny')
-        cls.group = Group.objects.create(
-            title='group',
-            slug='slug',
-            description='text'
-        )
-
-        cls.post = Post.objects.create(
-            text='text',
-            pub_date='date',
-            image=uploaded,
-            author=cls.user,
-            group=cls.group
+        cls.user = User.objects.create_user('Sonny')
+        cls.group = create_group('group', 'group', 'text')
+        cls.post = create_post(
+            'text', 'date', cls.user, cls.group, uploaded
         )
         cache.clear()
 
@@ -59,12 +51,12 @@ class PostsPagesTests(TestCase):
 
         return reverse(url, kwargs=kwargs)
 
-    def setUp(cls):
-        cls.authorized_client = Client()
-        cls.authorized_client.force_login(cls.user)
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
         cache.clear()
 
-    def test_pages_uses_correct_tamplates(cls):
+    def test_pages_uses_correct_tamplates(self):
         """View используют нужный шаблон."""
 
         def url(url, **kwargs) -> str:
@@ -74,10 +66,10 @@ class PostsPagesTests(TestCase):
 
         urls = [
             url('posts:index'),
-            url('posts:group_list', slug=cls.group.slug),
-            url('posts:profile', username=cls.post.author),
-            url('posts:post_detail', post_id=cls.post.id),
-            url('posts:post_edit', post_id=cls.post.id),
+            url('posts:group_list', slug=self.group.slug),
+            url('posts:profile', username=self.post.author),
+            url('posts:post_detail', post_id=self.post.id),
+            url('posts:post_edit', post_id=self.post.id),
             url('posts:post_create'),
         ]
 
@@ -91,10 +83,9 @@ class PostsPagesTests(TestCase):
         ]
 
         for url, template in zip(urls, templates):
-            with cls.subTest(url=url):
-                response = cls.authorized_client.get(url)
-                cache.clear()
-                cls.assertTemplateUsed(
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
+                self.assertTemplateUsed(
                     response, template,
                     f'{url} должен использовать шаблон {template}'
                 )
@@ -120,34 +111,19 @@ class ContextViewsTest(TestCase):
         )
 
         cls.guest_client = Client()
-        cls.user = User.objects.create_user(username='Sonny')
+        cls.user = User.objects.create_user('Sonny')
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
 
-        cls.group = Group.objects.create(
-            title='group',
-            slug='slug',
-            description='text'
-        )
+        cls.group = create_group('group', 'group', 'text')
+
         for x in range(0, 13):
             x += 1
-            cls.post = Post.objects.create(
-                text='text',
-                pub_date='date',
-                image=uploaded,
-                author=cls.user,
-                group=cls.group
+            cls.post = create_post(
+                'text', 'date', cls.user, cls.group, uploaded
             )
-        cls.comments = Comment.objects.create(
-            post=cls.post,
-            author=cls.user,
-            text='Comment',
-            created='date'
-        )
-        cls.followers = Follow.objects.create(
-            user=cls.user,
-            author=cls.user
-        )
+        cls.comment = create_comment(cls.post, cls.user, 'Comment', 'date')
+        cls.followers = create_follow(cls.user, cls.user)
         cache.clear()
 
     @classmethod
@@ -271,7 +247,7 @@ class ContextViewsTest(TestCase):
         self.assertIsNotNone(one_post)
 
     def test_authorized_can_comment(self):
-        """Авторизированный может коментировать."""
+        """Авторизированный может комментировать."""
 
         response = self.authorized_client.get(
             reverse(
@@ -281,6 +257,8 @@ class ContextViewsTest(TestCase):
             follow=True
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
+        comment_new = response.context.get('comments')
+        self.assertIsNotNone(comment_new)
 
     def test_comments_contains_on_post_detail(self):
         """Комментарий появился на /post_detail/."""
@@ -298,14 +276,11 @@ class ContextViewsTest(TestCase):
         )
 
     def test_index_page_cache(self):
+        """Страница /index/ кешируется"""
+
         response = self.authorized_client.get(reverse('posts:index'))
         posts = response.content
-        Post.objects.create(
-            text='text',
-            pub_date='date',
-            author=self.user,
-            group=self.group
-        )
+        create_post('text', 'date', self.user, self.group)
         response_old = self.authorized_client.get(reverse('posts:index'))
         old_posts = response_old.content
         self.assertEqual(old_posts, posts)
@@ -334,6 +309,3 @@ class ContextViewsTest(TestCase):
         )
         subscription = response.context.get('page_obj').object_list
         self.assertIsNotNone(subscription)
-        response = self.guest_client.get(
-            reverse('posts:follow_index')
-        )

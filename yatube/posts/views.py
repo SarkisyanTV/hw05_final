@@ -20,7 +20,7 @@ def get_paginator(request, posts):
 
 @cache_page(2)
 def index(request):
-    post_list = Post.objects.all()
+    post_list = Post.objects.select_related('author').all()
     title = 'Yatube'
     main_header = 'Последние обновления на сайте'
     context = {
@@ -34,7 +34,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.all()
+    post_list = group.posts.select_related('author').all()
     main_header = group.description
     group_name = group
     context = {
@@ -49,7 +49,7 @@ def group_posts(request, slug):
 def profile(request, username):
     title = username
     user_obj = get_object_or_404(User, username=username)
-    post_list = user_obj.posts.all()
+    post_list = user_obj.posts.select_related('author').all()
     post_count = post_list.count()
     following = user_obj.following.filter(user_id=request.user.id).exists()
     context = {
@@ -64,7 +64,7 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post_unit = get_object_or_404(Post, id=post_id)
-    posts = post_unit.author.posts.all()
+    posts = post_unit.author.posts.all().select_related('author')
     count = posts.count()
     title = post_unit.text
     form = CommentForm()
@@ -118,7 +118,6 @@ def post_edit(request, post_id):
         post.text = form.cleaned_data['text']
         post.group = form.cleaned_data['group']
         post.image = form.cleaned_data['image']
-        post = form.save(commit=False)
         form.save()
         return redirect('posts:post_detail', post_id)
     return render(
@@ -158,7 +157,7 @@ def follow_index(request):
 def profile_follow(request, username):
     title = username
     user_obj = get_object_or_404(User, username=username)
-    post_list = user_obj.posts.all()
+    post_list = user_obj.posts.all().select_related('author')
     post_count = post_list.count()
     following = True
     context = {
@@ -183,7 +182,7 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     title = username
     user_obj = get_object_or_404(User, username=username)
-    post_list = user_obj.posts.all()
+    post_list = user_obj.posts.all().select_related('author')
     post_count = post_list.count()
     following = False
     Follow.objects.filter(user=request.user, author=user_obj).delete()

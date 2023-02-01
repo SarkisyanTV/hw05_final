@@ -37,7 +37,7 @@
           
         </ul>
       </aside>
-      <article class="col-12 col-md-9">
+      <div class="col-12 col-md-9">
         {% thumbnail post_unit.image "800x460" crop="center" upscale=True as im %}
           <img class="card-img my-2 img-thumbnail" src="{{ im.url }}">
         {% endthumbnail %}
@@ -53,10 +53,14 @@
               <div class="card my-4">
                 <h5 class="card-header">Добавить комментарий:</h5>
                 <div class="card-body">
-                  <form method="post" action="{% url 'posts:add_comment' post_unit.id %}">
-                    {% csrf_token %}      
+                  <form method="post" role="form" action="{% url 'posts:add_comment' post_unit.id %}">
+                    {% csrf_token %}
                     <div class="form-group mb-2">
-                      {{ form.text|addclass:'form_control' }}
+                      <div>
+                        {{ form.text|addclass:'form-control' }}
+                      </div>
+
+
                     </div>
                     <button type="submit" class="btn btn-primary">Отправить</button>
                   </form>
@@ -77,7 +81,7 @@
                 </div>
               </div>
             {% endfor %}  
-      </article>
+      </div>
     </div>      
     {% endblock content %}
     </article>          

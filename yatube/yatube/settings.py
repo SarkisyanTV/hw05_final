@@ -25,6 +25,8 @@ SECRET_KEY = '!yi9l22jz2!g=7-=t^y$ia6lwley27#%!$s+($pt3j_+-s%2ec'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    'www.stigos.pythonanywhere.com',
+    'stigos.pythonanywhere.com',
     'localhost',
     '127.0.0.1',
     '[::1]',
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'about.apps.AboutConfig',
     'sorl.thumbnail',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +61,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'yatube.urls'
