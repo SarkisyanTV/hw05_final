@@ -20,7 +20,7 @@ def get_paginator(request, posts):
 
 @cache_page(2)
 def index(request):
-    post_list = Post.objects.select_related('author').all()
+    post_list = Post.objects.prefetch_related('author')
     title = 'Yatube'
     main_header = 'Последние обновления на сайте'
     context = {
@@ -34,9 +34,9 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.select_related('author').all()
+    post_list = group.posts.select_related('author')
     main_header = group.description
-    group_name = group
+    group_name = group.slug
     context = {
         'main_header': main_header,
         'group_name': group_name,
@@ -49,7 +49,7 @@ def group_posts(request, slug):
 def profile(request, username):
     title = username
     user_obj = get_object_or_404(User, username=username)
-    post_list = user_obj.posts.select_related('author').all()
+    post_list = user_obj.posts.select_related('author')
     post_count = post_list.count()
     following = user_obj.following.filter(user_id=request.user.id).exists()
     context = {
@@ -64,11 +64,11 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post_unit = get_object_or_404(Post, id=post_id)
-    posts = post_unit.author.posts.all().select_related('author')
+    posts = post_unit.author.posts.select_related('author')
     count = posts.count()
     title = post_unit.text
     form = CommentForm()
-    comments = Comment.objects.all().filter(post_id=post_id)
+    comments = Comment.objects.filter(post_id=post_id).select_related('author')
     context = {
         'title': title,
         'post_unit': post_unit,
@@ -157,7 +157,7 @@ def follow_index(request):
 def profile_follow(request, username):
     title = username
     user_obj = get_object_or_404(User, username=username)
-    post_list = user_obj.posts.all().select_related('author')
+    post_list = user_obj.posts.select_related('author')
     post_count = post_list.count()
     following = True
     context = {
@@ -173,7 +173,7 @@ def profile_follow(request, username):
         author_id=user_obj.id
     ).exists()
     if request.user.username != user_obj.username and not follow_author:
-        Follow.objects.create(user=request.user, author=user_obj).save()
+        Follow.objects.get_or_create(user=request.user, author=user_obj).save()
         return render(request, 'posts/profile.html', context)
     return render(request, 'posts/profile.html', context)
 

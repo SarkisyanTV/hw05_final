@@ -41,9 +41,10 @@ class PostFormTests(TestCase):
     def tearDownClass(cls) -> None:
         super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        cache.clear()
 
     def test_post_label(self):
-        '''Тестируем label "text", "group".'''
+        """Тестируем label "text", "group"."""
         text_lable = PostFormTests.form.fields['text'].label
         group_lable = PostFormTests.form.fields['group'].label
         self.assertEqual(text_lable, PostForm.Meta.labels['text'])
